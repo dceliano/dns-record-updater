@@ -37,7 +37,6 @@ class Socket:
     def __loadCertContext(self):
         context = ssl.SSLContext(ssl.PROTOCOL_TLS)
         context.verify_mode = ssl.CERT_REQUIRED
-        context.load_verify_locations(os.path.abspath(os.path.join(__file__ ,"../../../client/client.pem")))
 
         return context
 

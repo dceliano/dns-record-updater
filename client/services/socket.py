@@ -27,6 +27,5 @@ class Socket():
         context = ssl.SSLContext(ssl.PROTOCOL_TLS)
         context.verify_mode = ssl.CERT_REQUIRED
         context.load_verify_locations(os.path.abspath(os.path.join(__file__ ,"../../../server/server.pem")))
-        context.load_cert_chain('client.pem', 'client.key')
 
         return context
