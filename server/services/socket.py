@@ -1,39 +1,45 @@
-import socket
-# import ssl
+import os, socket, ssl
 from services.aws_cli import AwsCli
 
 class Socket: 
 
     def openSocketServer(self):
         server_address = ('localhost', 50)
+        context = self.__loadCertContext()
 
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0) as sock:
             sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-            print('Server listening on %s:%s' % server_address)
-            # TODO: build in SSL connection
-                # context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
-                # context.load_cert_chain(certfile="cert.pem")
-                # sslsoc = context.wrap_socket(newsocket, server_side=True)
-                # request = sslsoc.read()
             sock.bind(server_address)
             sock.listen(0)
+            print('Server listening on %s:%s' % server_address)
             
             while True: # Always have server waiting for a connection
-                connection, client_address = sock.accept()
+                client_conn, client_address = sock.accept()
                 host = client_address[0]
                 print('Connection from', client_address[0])
 
-                data = connection.recv(1024)
-                authKey = data.decode()
-                recordSetNameToUpdate = 'nicky.domcc3.com' # TODO: this should come in as a property from data.decode() to make app more generic
-                print('Received authKey: ', authKey)
-                if self.__authenticateClientRequest(authKey):
-                    msg = self.__updateAWSResourceRecord(host, recordSetNameToUpdate)
-                    connection.sendall(str.encode(msg))
-                else:
-                    connection.sendall(b'Error: Invalid Auth')
-                
-                connection.close()
+                with ssl.wrap_socket(client_conn, server_side=True, certfile='server.pem', keyfile='server.key') as ssock:
+                    data = ssock.recv(1024)
+                    authKey = data.decode()
+                    recordSetNameToUpdate = 'nicky.domcc3.com' # TODO: this should come in as a property from data.decode() to make app more generic
+                    print('Received authKey: ', authKey)
+
+                    if self.__authenticateClientRequest(authKey):
+                        msg = self.__updateAWSResourceRecord(host, recordSetNameToUpdate)
+                        ssock.sendall(str.encode(msg))
+                    else:
+                        ssock.sendall(b'Error: Invalid Auth')
+                    
+                    ssock.close()
+                    
+            sock.close()
+
+    def __loadCertContext(self):
+        context = ssl.SSLContext(ssl.PROTOCOL_TLS)
+        context.verify_mode = ssl.CERT_REQUIRED
+        context.load_verify_locations(os.path.abspath(os.path.join(__file__ ,"../../../client/client.pem")))
+
+        return context
 
     def __authenticateClientRequest(self, authKey):
         # TODO: verify client's public key to server's private key

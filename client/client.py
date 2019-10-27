@@ -1,3 +1,3 @@
 from services.socket import Socket
 
-Socket.sendRequestToServer()
+Socket().sendRequestToServer()
