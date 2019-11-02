@@ -3,29 +3,28 @@ import os, socket, ssl
 class Socket():
 
     def sendRequestToServer(self):
-        hostname = 'localhost'
+        hostname = 'domcc3.com'
         port = 50
         context = self.__loadCertContext()
 
-        # Create a TCP/IP socket
-        with socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0) as sock:
-            print('connecting to %s port %s' % (hostname, port))
-            sock.connect((hostname, port))
+        # Create a TCP/IP socket, and then open it as a secure (TLS) socket
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0)
+        with context.wrap_socket(sock, server_hostname=hostname) as ssock:
+            print('Connecting to %s on port %s.' % (hostname, port))
+            ssock.connect((hostname, port))
+            # Send data and look for the response
+            authKey = 'AhwkreWoZOwke9Kwlepq'
+            print('Sending %s' % authKey)
+            ssock.sendall(str.encode(authKey))
 
-            with context.wrap_socket(sock, server_hostname=hostname, server_side=False) as ssock:
-                # Send data and look for the response
-                authKey = 'AhwkreWoZOwke9Kwlepq'
-                print('Sending %s' % authKey)
-                ssock.sendall(str.encode(authKey))
-
-                data = ssock.recv(1024)
-                print('Received', repr(data.decode()))
-                ssock.close()
-                sock.close()
+            data = ssock.recv(1024)
+            print('Received', repr(data.decode()))
+            ssock.close()
     
     def __loadCertContext(self):
-        context = ssl.SSLContext(ssl.PROTOCOL_TLS)
+        # Set up the client's TLS parameters
+        context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
         context.verify_mode = ssl.CERT_REQUIRED
-        context.load_verify_locations(os.path.abspath(os.path.join(__file__ ,"../../../server/server.pem")))
-
+        # Load the server's public key
+        context.load_verify_locations("./server.pem")
         return context

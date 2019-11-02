@@ -1,11 +1,10 @@
 import os, socket, ssl
 from services.aws_cli import AwsCli
 
-class Socket: 
-
+class Socket:
     def openSocketServer(self):
-        server_address = ('localhost', 50)
-        context = self.__loadCertContext()
+        server_address = ('0.0.0.0', 50)
+        #context = self.__loadCertContext()
 
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0) as sock:
             sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
