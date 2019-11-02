@@ -29,3 +29,6 @@ openssl req -new -newkey rsa:2048 -days 365 -nodes -x509 -keyout server.key -out
 
 After you type this command, press enter for everything except "Common Name (e.g. server FQDN or YOUR name)," where you will put your website name (domcc3.com, in this case).
 ### Client keys
+openssl req -new -newkey rsa:2048 -days 365 -nodes -x509 -keyout client.key -out client.pem
+
+After you type this command, press enter for everything (we don't care about the Common Name for the client).

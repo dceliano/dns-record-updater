@@ -12,19 +12,19 @@ class Socket():
         with context.wrap_socket(sock, server_hostname=hostname) as ssock:
             print('Connecting to %s on port %s.' % (hostname, port))
             ssock.connect((hostname, port))
-            # Send data and look for the response
-            authKey = 'AhwkreWoZOwke9Kwlepq'
-            print('Sending %s' % authKey)
-            ssock.sendall(str.encode(authKey))
-
+            # Send request and look for the response
+            request = '(Code for the request to update the DNS record)'
+            print('Sending %s' % request)
+            ssock.sendall(str.encode(request))
             data = ssock.recv(1024)
             print('Received', repr(data.decode()))
             ssock.close()
     
     def __loadCertContext(self):
         # Set up the client's TLS parameters
-        context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
+        context = ssl.create_default_context(ssl.Purpose.SERVER_AUTH, cafile="../server.pem")
+        context.load_cert_chain(certfile="../client.pem", keyfile="client.key")
         context.verify_mode = ssl.CERT_REQUIRED
         # Load the server's public key
-        context.load_verify_locations("./server.pem")
+        context.load_verify_locations('../server.pem')
         return context
